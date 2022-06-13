@@ -5,9 +5,7 @@ SEARCH_URL = 'https://search-maps.yandex.ru/v1/'
 
 API_KEY = 'f49ce4e7-2f3f-46ba-b33e-da64cfbe94d7'
 
-
-def is_valid(elem):
-    return elem if elem else None
+RESULT_LIM = 500
 
 
 class Item:
@@ -31,24 +29,49 @@ class Item:
             self.availabilities = meta['Hours']['Availabilities']
         except:
             self.hours = self.availabilities = None
+        
+        try:
+            self.phones = meta['Phones']
+        except:
+            self.phones = None
+
+
 
     def __str__(self) -> str:
         return (
-            f'# id:          {self.id}         \n'
-            f'> name:        {self.name}       \n'
-            f'> description: {self.description}\n'
-            f'> categories:  {self.categories} \n'
-            f'> address:     {self.address}    \n'
+            f'# id: {self.id}                            \n'
+            f'>     name:           {self.name}          \n'
+            f'>     description:    {self.description}   \n'
+            f'>     categories:     {self.categories}    \n'
+            f'>     address:        {self.address}       \n'
+            f'>     phone:          {self.phones}        \n'
+            f'>     availabilities: {self.availabilities}\n'
+            f'>     boundedBy:      {self.boundedBy}     \n'
         )
 
 
 class Directory:
 
-    def __init__(self, search, items, found, added) -> None:
+    def __init__(self, search, items = [], found = 0, added = 0, boundedBy = []) -> None:
         self.search = search
         self.items = items
         self.found = found
         self.added = added
+        self.boundedBy = boundedBy
+
+    def set_items(self, result = RESULT_LIM):
+        for skip in (0, 500, 1000):
+            data = get_data(self.search, result, skip)
+
+            self.add_items(data['features'])
+
+            self.found = data['properties']['ResponseMetaData']['SearchResponse']['found']
+
+            self.boundedBy = data['properties']['ResponseMetaData']['SearchRequest']['boundedBy']
+
+    def add_items(self, new_items):
+        for ind in range(len(new_items)):
+            self.add_item(Item(new_items[ind]))
 
     def add_item(self, new_item):
         for item in self.items:
@@ -60,9 +83,10 @@ class Directory:
 
     def __str__(self) -> str:
         return (
-            f'# Search: {self.search}\n'
-            f'> Found:  {self.found} \n'
-            f'> Added:  {self.added} \n'
+            f'# Search:    {self.search}   \n'
+            f'> Found:     {self.found}    \n'
+            f'> Added:     {self.added}    \n'
+            f'> BoundedBy: {self.boundedBy}\n'
         )
 
 
@@ -73,35 +97,17 @@ def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
     ).json()
 
 
-def pars(items = []):
+def pars(text):
 
-    data1 = get_data('автомойка москва', 1000, 0)
+    directory = Directory(text)
 
-    items = [Item(data1['features'][ind]) for ind in range(len(data1['features']))]
+    directory.set_items()
 
-    found = data1['properties']['ResponseMetaData']['SearchResponse']['found']
-
-    search = data1['properties']['ResponseMetaData']['SearchRequest']['request']
-
-    directory = Directory(search, items, found, len(items))
-
-    data1 = get_data('автомойка москва', 1000, 500)
-
-    for ind in range(len(data1['features'])):
-        directory.add_item(Item(data1['features'][ind]))
-
-    data1 = get_data('автомойка москва', 1000, 1000)
-
-    for ind in range(len(data1['features'])):
-        directory.add_item(Item(data1['features'][ind]))
-
-    directory.found = data1['properties']['ResponseMetaData']['SearchResponse']['found']
-
-    print(directory)
-
-    print(directory.items[0])
+    return directory
 
 
 if __name__ == '__main__':
-    pars()
+    print(pars('автомойка центральный административный округ'))
+
+
 
