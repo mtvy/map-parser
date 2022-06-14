@@ -47,7 +47,7 @@ catalog = [
 def start(msg):
     try:
         keyboard = set_keyboard(['Начать', 'Категории', 'Словарь'])
-        bot.send_message(msg.chat.id, '> init keyboard', reply_markup=keyboard)
+        bot.send_message(msg.chat.id, 'Приветсвую!', reply_markup=keyboard)
 
     except:
         debug.saveLogs(
@@ -58,19 +58,29 @@ def start(msg):
 
 
 #\==================================================================/#
+def send_directory(msg):
+    bot.send_message(msg.chat.id, directory)
+
+def config_directory(msg):
+    bot.send_message(msg.chat.id, f'Получение данных по {catalog}')
+    directory.set_directory(catalog)
+    bot.send_message(msg.chat.id, f'Запросы получены!')
+
+def show_categories_keyboard(msg):
+    keyboard = set_keyboard(['Назад', 'Показать', 'Добавить', 'Удалить'])
+    bot.send_message(msg.chat.id, 'Приветсвую!', reply_markup=keyboard)
+
+
+KEYBOARD_FUNC = {
+    'Словарь'   : send_directory,
+    'Начать'    : config_directory,
+    'Категории' : show_categories_keyboard
+}
+
 @bot.message_handler(content_types=['text'])
 def input_keyboard(msg):
     try:
-        if msg.chat.type == 'private':
-
-            if msg.text == 'Словарь':
-                bot.send_message(msg.chat.id, directory)
-            
-            elif msg.text == 'Начать':
-                bot.send_message(msg.chat.id, f'Получение данных по {catalog}')
-
-                directory.set_directory(catalog)
-                bot.send_message(msg.chat.id, f'Запросы получены!')
+        if msg.text in KEYBOARD_FUNC: KEYBOARD_FUNC[msg.text](msg)
 
     except:
         debug.saveLogs(

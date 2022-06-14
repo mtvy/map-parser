@@ -1,4 +1,5 @@
 
+from typing import Dict, List, Set
 import requests
 
 SEARCH_URL = 'https://search-maps.yandex.ru/v1/'
@@ -10,7 +11,7 @@ RESULT_LIM = 500
 
 class Item:
 
-    def __init__(self, item) -> None:
+    def __init__(self, item : Dict) -> None:
 
         prts = item[  'properties'   ]
         meta = prts['CompanyMetaData']
@@ -50,19 +51,50 @@ class Item:
         )
 
 
+class Catalog:
+
+    def __init__(self, categories : List[str] = []):
+        self.__categories = categories
+
+    def add(self, category : str):
+        self.__categories.append(category)
+
+    def __getitem__(self, index : int) -> str:
+        if len(self.__categories) > abs(index):
+            return self.__categories[index]
+        else:
+            return False
+
+    def __delitem__(self, category : str) -> bool:
+        if category in self.__categories: 
+            self.__categories.remove(category)
+            return True
+        return False
+
+    def __str__(self, out : str = '# Catalog\n') -> str:
+        for ind, category in zip(range(len(self.__categories)), self.__categories):
+            out += f'{ind}. {category}\n'
+        return out
+
+
 class Directory:
 
-    def __init__(self, search = [], items = [], added = 0, boundedBy = []) -> None:
-        self.search = search
-        self.items = items
-        self.added = added
+    def __init__(self, catalog   : Catalog    = Catalog(),
+                       items     : List[Item] = [], 
+                       added     : int        = 0 , 
+                       boundedBy : List[List[int]] = []) -> None:
+                       
+        self.catalog   = catalog
+        self.items     = items
+        self.catalog   = catalog
+        self.added     = added
         self.boundedBy = boundedBy
 
-    def set_items(self, search, result = RESULT_LIM):
-        self.search.append(search)
+    def set_items(self, category, result = RESULT_LIM):
+        self.catalog.add(category)
         
         for skip in (0, 500, 1000):
-            data = get_data(self.search[-1], result, skip)
+            data = get_data(self.catalog[-1], result, skip)
             
             self.add_items(data['features'])
 
@@ -86,11 +118,10 @@ class Directory:
 
     def __str__(self) -> str:
         return (
-            f'# Search:    {self.search}   \n'
+            f'{self.catalog}'
             f'> Added:     {self.added}    \n'
             f'> BoundedBy: {self.boundedBy}\n'
         )
-
 
 
 def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
@@ -101,20 +132,19 @@ def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
 
 
 if __name__ == '__main__':
+
     directory = Directory()
 
     directory.set_items( 'автомойка Центральный административный округ'      )
     directory.set_items( 'автомойка Северный административный округ'         )
-    directory.set_items( 'автомойка Северо-Восточный административный округ' )
-    directory.set_items( 'автомойка Восточный административный округ'        )
-    directory.set_items( 'автомойка Юго-Восточный административный округ'    )
-    directory.set_items( 'автомойка Южный административный округ'            )
-    directory.set_items( 'автомойка Юго-Западный административный округ'     )
-    directory.set_items( 'автомойка Западный административный округ'         )
-    directory.set_items( 'автомойка Северо-Западный административный округ'  )
-    
+
     print(directory)
+    print(directory.items[-1])
+
+    print(directory.catalog)
     
+    print(directory.catalog[-1])
 
+    del directory.catalog['автомойка Северный административный округ']
 
-
+    print(directory.catalog) 
