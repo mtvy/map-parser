@@ -52,20 +52,19 @@ class Item:
 
 class Directory:
 
-    def __init__(self, search, items = [], found = 0, added = 0, boundedBy = []) -> None:
+    def __init__(self, search = [], items = [], added = 0, boundedBy = []) -> None:
         self.search = search
         self.items = items
-        self.found = found
         self.added = added
         self.boundedBy = boundedBy
 
-    def set_items(self, result = RESULT_LIM):
+    def set_items(self, search, result = RESULT_LIM):
+        self.search.append(search)
+        
         for skip in (0, 500, 1000):
-            data = get_data(self.search, result, skip)
-
+            data = get_data(self.search[-1], result, skip)
+            
             self.add_items(data['features'])
-
-            self.found = data['properties']['ResponseMetaData']['SearchResponse']['found']
 
             self.boundedBy = data['properties']['ResponseMetaData']['SearchRequest']['boundedBy']
 
@@ -81,10 +80,13 @@ class Directory:
         self.added += 1
         return True
 
+    def set_directory(self, catalog):
+        for category in catalog:
+            self.set_items(category)
+
     def __str__(self) -> str:
         return (
             f'# Search:    {self.search}   \n'
-            f'> Found:     {self.found}    \n'
             f'> Added:     {self.added}    \n'
             f'> BoundedBy: {self.boundedBy}\n'
         )
@@ -97,17 +99,22 @@ def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
     ).json()
 
 
-def pars(text):
-
-    directory = Directory(text)
-
-    directory.set_items()
-
-    return directory
-
 
 if __name__ == '__main__':
-    print(pars('автомойка центральный административный округ'))
+    directory = Directory()
+
+    directory.set_items( 'автомойка Центральный административный округ'      )
+    directory.set_items( 'автомойка Северный административный округ'         )
+    directory.set_items( 'автомойка Северо-Восточный административный округ' )
+    directory.set_items( 'автомойка Восточный административный округ'        )
+    directory.set_items( 'автомойка Юго-Восточный административный округ'    )
+    directory.set_items( 'автомойка Южный административный округ'            )
+    directory.set_items( 'автомойка Юго-Западный административный округ'     )
+    directory.set_items( 'автомойка Западный административный округ'         )
+    directory.set_items( 'автомойка Северо-Западный административный округ'  )
+    
+    print(directory)
+    
 
 
 
