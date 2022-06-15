@@ -63,6 +63,7 @@ class Catalog:
     def __init__(self, categories : List[str] = []):
         self.__categories = categories
 
+    def __call__(self):
     def __getitem__(self, index : int) -> str:
         if len(self.__categories) > abs(index):
             return self.__categories[index]
@@ -75,8 +76,11 @@ class Catalog:
             return True
         return False
 
-    def __iadd__(self, category : str):
-        self.__categories.append(category)
+    def __iadd__(self, category):
+        if type(category) == str:
+            self.__categories.append(category)
+        elif type(category) == Catalog():
+            self.__categories.append(category)
         
     def __str__(self, out : str = '# Catalog\n') -> str:
         for ind, category in zip(range(len(self.__categories)), self.__categories):
