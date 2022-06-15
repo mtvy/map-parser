@@ -1,14 +1,21 @@
+#/==================================================================\#
+#                                                                    #
+#\==================================================================/#
 
+#\==================================================================/#
 from typing import Dict, List, Set
 import requests
+#\==================================================================/#
 
+#\==================================================================/#
 SEARCH_URL = 'https://search-maps.yandex.ru/v1/'
 
 API_KEY = 'f49ce4e7-2f3f-46ba-b33e-da64cfbe94d7'
 
 RESULT_LIM = 500
+#\==================================================================/#
 
-
+#\==================================================================/#
 class Item:
 
     def __init__(self, item : Dict) -> None:
@@ -28,6 +35,7 @@ class Item:
         try:
             self.hours          = meta['Hours']['text']
             self.availabilities = meta['Hours']['Availabilities']
+        
         except:
             self.hours = self.availabilities = None
         
@@ -35,8 +43,6 @@ class Item:
             self.phones = meta['Phones']
         except:
             self.phones = None
-
-
 
     def __str__(self) -> str:
         return (
@@ -49,15 +55,13 @@ class Item:
             f'>     availabilities: {self.availabilities}\n'
             f'>     boundedBy:      {self.boundedBy}     \n'
         )
+#\==================================================================/#
 
-
+#\==================================================================/#
 class Catalog:
 
     def __init__(self, categories : List[str] = []):
         self.__categories = categories
-
-    def add(self, category : str):
-        self.__categories.append(category)
 
     def __getitem__(self, index : int) -> str:
         if len(self.__categories) > abs(index):
@@ -71,12 +75,16 @@ class Catalog:
             return True
         return False
 
+    def __iadd__(self, category : str):
+        self.__categories.append(category)
+        
     def __str__(self, out : str = '# Catalog\n') -> str:
         for ind, category in zip(range(len(self.__categories)), self.__categories):
             out += f'{ind}. {category}\n'
         return out
+#\==================================================================/#
 
-
+#\==================================================================/#
 class Directory:
 
     def __init__(self, catalog   : Catalog    = Catalog(),
@@ -86,14 +94,13 @@ class Directory:
                        
         self.catalog   = catalog
         self.items     = items
-        self.catalog   = catalog
         self.added     = added
         self.boundedBy = boundedBy
 
-    def set_items(self, category, result = RESULT_LIM):
-        self.catalog.add(category)
+    def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000):
+        self.catalog += category
         
-        for skip in (0, 500, 1000):
+        for skip in passes:
             data = get_data(self.catalog[-1], result, skip)
             
             self.add_items(data['features'])
@@ -104,7 +111,7 @@ class Directory:
         for ind in range(len(new_items)):
             self.add_item(Item(new_items[ind]))
 
-    def add_item(self, new_item):
+    def add_item(self, new_item) -> bool:
         for item in self.items:
             if item.id == new_item.id:
                 return False
@@ -122,15 +129,16 @@ class Directory:
             f'> Added:     {self.added}    \n'
             f'> BoundedBy: {self.boundedBy}\n'
         )
+#\==================================================================/#
 
-
+#\==================================================================/#
 def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
     return requests.get(
         f'{SEARCH_URL}?text={text}&type={type}&lang={lang}&results={result}&skip={skip}&apikey={API_KEY}'
     ).json()
+#\==================================================================/#
 
-
-
+#\==================================================================/#
 if __name__ == '__main__':
 
     directory = Directory()
@@ -148,3 +156,5 @@ if __name__ == '__main__':
     del directory.catalog['автомойка Северный административный округ']
 
     print(directory.catalog) 
+  #\==================================================================/#
+  
