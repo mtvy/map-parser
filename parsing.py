@@ -3,12 +3,10 @@
 #\==================================================================/#
 
 #\==================================================================/#
-from tkinter.messagebox import NO
 from typing import Dict, List
-import requests, traceback
+import requests
 
 from variables import *
-import debug, path
 #\==================================================================/#
 
 #\==================================================================/#
@@ -68,7 +66,7 @@ class Catalog:
         self.__categories = categories
 
     def __getitem__(self, index : int) -> str:
-        if len(self.__categories) > abs(index):
+        if len(self.__categories) >= abs(index + 1):
             return self.__categories[index]
         else:
             return False
@@ -100,22 +98,24 @@ class Catalog:
         
     def __str__(self, out : str = '# Catalog\n') -> str:
         for ind, category in zip(range(len(self.__categories)), self.__categories):
-            out += f'{ind}. {category}\n'
+            out += f'|{ind}. {category}\n'
         return out
 #\==================================================================/#
 
 #\==================================================================/#
 class Directory:
 
-    def __init__(self, catalog   : Catalog    = Catalog(),
-                       items     : List[Item] = [], 
-                       added     : int        = 0 , 
-                       boundedBy : List[List[int]] = []) -> None:
+    def __init__(self, catalog    : Catalog    = Catalog(),
+                       items      : List[Item] = [], 
+                       added      : int        = 0 , 
+                       boundedBy  : List[List[int]] = [],
+                       properties : List = []) -> None:
                        
-        self.catalog   = catalog
-        self.items     = items
-        self.added     = added
-        self.boundedBy = boundedBy
+        self.catalog    = catalog
+        self.items      = items
+        self.added      = added
+        self.boundedBy  = boundedBy
+        self.properties = properties
 
     def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)) -> None:
         self.catalog += category
@@ -126,6 +126,8 @@ class Directory:
             self.add_items(data['features'])
 
             self.boundedBy = data['properties']['ResponseMetaData']['SearchRequest']['boundedBy']
+
+            self.properties.append(data['properties'])
 
     def add_items(self, new_items) -> None:
         for ind in range(len(new_items)):
@@ -145,16 +147,23 @@ class Directory:
 
     def __str__(self) -> str:
         return (
-            f'{self.catalog}'
-            f'> Added:     {self.added}    \n'
-            f'> BoundedBy: {self.boundedBy}\n'
+            f'!Directory\n'
+            f'|{self.catalog}'
+            f'|> Added:      {self.added}     \n'
+            f'|> BoundedBy:  {self.boundedBy} \n'
+            f'|> Properties: {self.properties}\n'
         )
 #\==================================================================/#
 
 #\==================================================================/#
 def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
     return requests.get(
-        f'{SEARCH_URL}?text={text}&type={type}&lang={lang}&results={result}&skip={skip}&apikey={API_KEY}'
+        f'{SEARCH_URL}?text={text}'
+                    f'&type={type}'
+                    f'&lang={lang}'
+                 f'&results={result}'
+                    f'&skip={skip}'
+                  f'&apikey={API_KEY}'
     ).json()
 #\==================================================================/#
 
@@ -167,12 +176,35 @@ if __name__ == '__main__':
 
     print(cat)
 
-    ct = Catalog(['1', '3', '2'])
+    test_cat = Catalog(['1', '3', '2'])
     
-    cat += ct
+    cat += test_cat
 
     print(cat)
 
+
+    directory = Directory()
+
+    directory.set_items( 'автомойка Центральный административный округ'      )
+    directory.set_items( 'автомойка Северный административный округ'         )
+
+    print(directory)
+    print(directory.items[-1])
+
+    print(directory.catalog)
     
+    print(directory.catalog[-1])
+
+    del directory.catalog['автомойка Северный административный округ']
+
+    print(directory.catalog)
+
+    directory.catalog += 'test_adding_str'
+
+    print(directory.catalog)
+
+    directory.catalog += cat
+
+    print(directory.catalog)
   #\==================================================================/#
   
