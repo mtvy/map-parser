@@ -63,7 +63,6 @@ class Catalog:
     def __init__(self, categories : List[str] = []):
         self.__categories = categories
 
-    def __call__(self):
     def __getitem__(self, index : int) -> str:
         if len(self.__categories) > abs(index):
             return self.__categories[index]
@@ -76,10 +75,17 @@ class Catalog:
             return True
         return False
 
+    def __add__(self, elem):
+        if isinstance(elem, str):
+            return self.__categories.append(elem)
+        elif isinstance(elem, Catalog):
+            return self.__categories + elem
+
     def __iadd__(self, category):
-        if type(category) == str:
+        if isinstance(category, str):
             self.__categories.append(category)
-        elif type(category) == Catalog():
+            print(self.__categories)
+        elif isinstance(category, Catalog):
             self.__categories.append(category)
         
     def __str__(self, out : str = '# Catalog\n') -> str:
@@ -101,7 +107,7 @@ class Directory:
         self.added     = added
         self.boundedBy = boundedBy
 
-    def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000):
+    def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)):
         self.catalog += category
         
         for skip in passes:
@@ -145,20 +151,18 @@ def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
 #\==================================================================/#
 if __name__ == '__main__':
 
-    directory = Directory()
+    cat = Catalog(['lol', 'lal', 'kok'])
 
-    directory.set_items( 'автомойка Центральный административный округ'      )
-    directory.set_items( 'автомойка Северный административный округ'         )
+    cat += 'pop'
 
-    print(directory)
-    print(directory.items[-1])
+    print(cat)
 
-    print(directory.catalog)
+    ct = Catalog(['1', 'lal', '2'])
+
+    cat += ct
+
+    print(cat)
+
     
-    print(directory.catalog[-1])
-
-    del directory.catalog['автомойка Северный административный округ']
-
-    print(directory.catalog) 
   #\==================================================================/#
   
