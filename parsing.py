@@ -3,8 +3,12 @@
 #\==================================================================/#
 
 #\==================================================================/#
-from typing import Dict, List, Set
-import requests
+from tkinter.messagebox import NO
+from typing import Dict, List
+import requests, traceback
+
+from variables import *
+import debug, path
 #\==================================================================/#
 
 #\==================================================================/#
@@ -60,7 +64,7 @@ class Item:
 #\==================================================================/#
 class Catalog:
 
-    def __init__(self, categories : List[str] = []):
+    def __init__(self, categories : List[str] = []) -> None:
         self.__categories = categories
 
     def __getitem__(self, index : int) -> str:
@@ -75,18 +79,24 @@ class Catalog:
             return True
         return False
 
-    def __add__(self, elem):
+    def __add(self, elem) -> List[str]:
         if isinstance(elem, str):
-            return self.__categories.append(elem)
+            return self.__categories + (
+                [elem] if elem not in self.__categories else []
+            )
         elif isinstance(elem, Catalog):
-            return self.__categories + elem
+            return self.__categories + list(filter(
+                lambda it: it not in self.__categories, 
+                elem.__categories
+            ))
 
-    def __iadd__(self, category):
-        if isinstance(category, str):
-            self.__categories.append(category)
-            print(self.__categories)
-        elif isinstance(category, Catalog):
-            self.__categories.append(category)
+    def __add__(self, elem) -> object:
+        self.__categories = self.__add(elem)
+        return self
+
+    def __iadd__(self, elem) -> object:
+        self.__categories = self.__add(elem)
+        return self
         
     def __str__(self, out : str = '# Catalog\n') -> str:
         for ind, category in zip(range(len(self.__categories)), self.__categories):
@@ -107,7 +117,7 @@ class Directory:
         self.added     = added
         self.boundedBy = boundedBy
 
-    def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)):
+    def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)) -> None:
         self.catalog += category
         
         for skip in passes:
@@ -117,7 +127,7 @@ class Directory:
 
             self.boundedBy = data['properties']['ResponseMetaData']['SearchRequest']['boundedBy']
 
-    def add_items(self, new_items):
+    def add_items(self, new_items) -> None:
         for ind in range(len(new_items)):
             self.add_item(Item(new_items[ind]))
 
@@ -129,7 +139,7 @@ class Directory:
         self.added += 1
         return True
 
-    def set_directory(self, catalog):
+    def set_directory(self, catalog) -> None:
         for category in catalog:
             self.set_items(category)
 
@@ -157,8 +167,8 @@ if __name__ == '__main__':
 
     print(cat)
 
-    ct = Catalog(['1', 'lal', '2'])
-
+    ct = Catalog(['1', '3', '2'])
+    
     cat += ct
 
     print(cat)
