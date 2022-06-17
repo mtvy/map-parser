@@ -134,7 +134,7 @@ class Catalog:
         
     def __str__(self, out : str = '# Catalog\n') -> str:
         for ind, category in zip(range(len(self.__categories)), self.__categories):
-            out += f'|{ind}. {category}\n'
+            out += f'|{ind + 1}. {category}\n'
         return out
 #\==================================================================/#
 
@@ -152,18 +152,35 @@ class Directory:
         self.added      = added
         self.boundedBy  = boundedBy
         self.properties = properties
+        self.parsing    = True
 
     def clear(self):
         for item in self.items:
             del item
-            
+
         self.items     .clear()
         self.catalog   .clear()
         self.boundedBy .clear()
         self.properties.clear()
 
-        self.added = 0  
+        self.added = 0
 
+    def update(self, result = RESULT_LIM, passes = (0, 500, 1000)):
+        added = []
+        for ind in range(len(self.catalog)):
+            for skip in passes:
+                data = get_data(self.catalog[ind], result, skip)
+                
+                if ('features' in data.keys()):
+                    self.parsing = True
+
+                    added = self.add_items(data['features'])
+
+                    self.properties.append(data['properties'])
+                else:
+                    self.parsing = False
+        
+        return added
 
     def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)) -> None:
         self.catalog += category
@@ -171,15 +188,24 @@ class Directory:
         for skip in passes:
             data = get_data(self.catalog[-1], result, skip)
             
-            self.add_items(data['features'])
+            if ('features' in data.keys()):
+                self.parsing = True
 
-            self.boundedBy = data['properties']['ResponseMetaData']['SearchRequest']['boundedBy']
+                self.add_items(data['features'])
 
-            self.properties.append(data['properties'])
+                self.boundedBy = data['properties']['ResponseMetaData']['SearchRequest']['boundedBy']
+
+                self.properties.append(data['properties'])
+            else:
+                    self.parsing = False
 
     def add_items(self, new_items) -> None:
+        added = []
         for ind in range(len(new_items)):
-            self.add_item(Item(new_items[ind]))
+            succeed = self.add_item(Item(new_items[ind]))
+            if succeed: added.append(succeed)
+        return added
+        
 
     def add_item(self, new_item) -> bool:
         for item in self.items:
@@ -187,7 +213,7 @@ class Directory:
                 return False
         self.items.append(new_item)
         self.added += 1
-        return True
+        return new_item
 
     def set_directory(self, catalog) -> None:
         if isinstance(catalog, str):
@@ -207,7 +233,7 @@ class Directory:
 #\==================================================================/#
 
 #\==================================================================/#
-def get_data(text, result, skip, type = 'biz', lang = 'ru_RU'):
+def get_data(text, result, skip, type = 'biz', lang = 'ru_RU') -> Dict:
     return requests.get(
         f'{SEARCH_URL}?text={text}'
                     f'&type={type}'
@@ -245,6 +271,8 @@ if __name__ == '__main__':
     print(directory.catalog)
     
     print(directory.catalog[-1])
+
+    print(directory.update())
 
     directory.catalog.del_item('автомойка Северный административный округ')
 

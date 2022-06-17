@@ -1,0 +1,16 @@
+[Unit]
+Description=Telegram bot 'map-parser'
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/map-parcer
+ExecStart=/usr/bin/python3 /root/map-parcer/bot.py
+ExecReload=/usr/bin/python3 /root/map-parcer/bot.py
+RestartSec=10
+Restart=ALWAYS
+
+[Install]
+WantedBy = multi-user.target
