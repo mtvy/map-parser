@@ -45,6 +45,19 @@ class Item:
             self.phones = meta['Phones']
         except:
             self.phones = None
+    
+    def __del__(self):
+        del self.id         
+        del self.name       
+        del self.phones
+        del self.hours         
+        del self.address    
+        del self.boundedBy  
+        del self.mata_name  
+        del self.categories
+        del self.description
+        del self.coordinates
+        del self.availabilities
 
     def __str__(self) -> str:
         return (
@@ -64,6 +77,13 @@ class Catalog:
 
     def __init__(self, categories : List[str] = []) -> None:
         self.__categories = categories
+        self.__len = len(categories)
+
+    def __len__(self):
+        return self.__len
+
+    def __contains__(self, elem):
+        return True if elem in self.__categories else False
 
     def __getitem__(self, index : int) -> str:
         if len(self.__categories) >= abs(index + 1):
@@ -71,9 +91,17 @@ class Catalog:
         else:
             return False
 
+    def del_item(self, category : str) -> bool:
+        if category in self.__categories: 
+            self.__categories.remove(category)
+            self.__len -= 1
+            return True
+        return False
+
     def __delitem__(self, category : str) -> bool:
         if category in self.__categories: 
             self.__categories.remove(category)
+            self.__len -= 1
             return True
         return False
 
@@ -83,6 +111,7 @@ class Catalog:
                 [elem] if elem not in self.__categories else []
             )
         elif isinstance(elem, Catalog):
+            self.__len += 1
             return self.__categories + list(filter(
                 lambda it: it not in self.__categories, 
                 elem.__categories
@@ -90,10 +119,17 @@ class Catalog:
 
     def __add__(self, elem) -> object:
         self.__categories = self.__add(elem)
+        self.__len = len(self.__categories)
         return self
 
     def __iadd__(self, elem) -> object:
         self.__categories = self.__add(elem)
+        self.__len = len(self.__categories)
+        return self
+    
+    def clear(self):
+        self.__categories.clear()
+        self.__len = 0
         return self
         
     def __str__(self, out : str = '# Catalog\n') -> str:
@@ -116,6 +152,18 @@ class Directory:
         self.added      = added
         self.boundedBy  = boundedBy
         self.properties = properties
+
+    def clear(self):
+        for item in self.items:
+            del item
+            
+        self.items     .clear()
+        self.catalog   .clear()
+        self.boundedBy .clear()
+        self.properties.clear()
+
+        self.added = 0  
+
 
     def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)) -> None:
         self.catalog += category
@@ -142,8 +190,12 @@ class Directory:
         return True
 
     def set_directory(self, catalog) -> None:
-        for category in catalog:
-            self.set_items(category)
+        if isinstance(catalog, str):
+            for category in catalog:
+                self.set_items(category)
+        elif isinstance(catalog, Catalog):
+            for ind in range(len(catalog)):
+                self.set_items(catalog[ind])
 
     def __str__(self) -> str:
         return (
@@ -151,7 +203,6 @@ class Directory:
             f'|{self.catalog}'
             f'|> Added:      {self.added}     \n'
             f'|> BoundedBy:  {self.boundedBy} \n'
-            f'|> Properties: {self.properties}\n'
         )
 #\==================================================================/#
 
@@ -195,7 +246,7 @@ if __name__ == '__main__':
     
     print(directory.catalog[-1])
 
-    del directory.catalog['автомойка Северный административный округ']
+    directory.catalog.del_item('автомойка Северный административный округ')
 
     print(directory.catalog)
 
