@@ -84,7 +84,7 @@ def config_directory(msg):
             bot.send_message(msg.chat.id, f'Получение данных по {catalog}', reply_markup=types.ReplyKeyboardRemove())
         except:
             bot.send_message(msg.chat.id, f'Получение данных по {len(catalog)} элементам', reply_markup=types.ReplyKeyboardRemove())
-            
+
         directory.set_directory(catalog)
         if directory.parsing:
             status = f'{EMJ_CROSS} Остановить'
@@ -222,7 +222,7 @@ def handle_updates(_id : int, _directory : parsing.Directory):
 
     schedule.every(
         UPDATE_DELAY
-    ).hour.do(send_request, _id, _directory)
+    ).hours.do(send_request, _id, _directory)
 
     while True:
         schedule.run_pending()
