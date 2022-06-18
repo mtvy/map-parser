@@ -165,7 +165,7 @@ class Directory:
 
         self.added = 0
 
-    def update(self, result = RESULT_LIM, passes = (0, 500)):
+    def update(self, result = RESULT_LIM, passes = (0, 500, 1000)):
         added = []
         for ind in range(len(self.catalog)):
             for skip in passes:
@@ -177,12 +177,19 @@ class Directory:
                     added = self.add_items(data['features'])
 
                     self.properties.append(data['properties'])
+                
+                    if (int(data['properties']['ResponseMetaData']['SearchResponse']['found']) < 1000 and skip == 500) or (
+                        int(data['properties']['ResponseMetaData']['SearchResponse']['found']) < 500 and skip == 0):
+                        break
+
                 else:
                     self.parsing = False
+                    break
+
         
         return added
 
-    def set_items(self, category, result = RESULT_LIM, passes = (0, 500)) -> None:
+    def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)) -> None:
         self.catalog += category
         
         for skip in passes:
@@ -196,8 +203,15 @@ class Directory:
                 self.boundedBy = data['properties']['ResponseMetaData']['SearchRequest']['boundedBy']
 
                 self.properties.append(data['properties'])
+                
+                if (int(data['properties']['ResponseMetaData']['SearchResponse']['found']) < 1000 and skip == 500) or (
+                    int(data['properties']['ResponseMetaData']['SearchResponse']['found']) < 500 and skip == 0):
+                    break
+
+
             else:
                     self.parsing = False
+                    break
 
     def add_items(self, new_items) -> None:
         added = []
@@ -226,9 +240,7 @@ class Directory:
     def __str__(self) -> str:
         return (
             f'!Directory\n'
-            f'|{self.catalog}'
             f'|> Added:      {self.added}     \n'
-            f'|> BoundedBy:  {self.boundedBy} \n'
         )
 #\==================================================================/#
 

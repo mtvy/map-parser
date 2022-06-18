@@ -80,7 +80,11 @@ def config_directory(msg):
     global status, directory, handling_process
 
     if len(catalog):
-        bot.send_message(msg.chat.id, f'Получение данных по {catalog}', reply_markup=types.ReplyKeyboardRemove())
+        try:
+            bot.send_message(msg.chat.id, f'Получение данных по {catalog}', reply_markup=types.ReplyKeyboardRemove())
+        except:
+            bot.send_message(msg.chat.id, f'Получение данных по {len(catalog)} элементам', reply_markup=types.ReplyKeyboardRemove())
+            
         directory.set_directory(catalog)
         if directory.parsing:
             status = f'{EMJ_CROSS} Остановить'
@@ -104,8 +108,14 @@ def show_categories_keyboard(msg):
 def show_categories(msg):
     global directory
 
-    bot.send_message(msg.chat.id, f'Загруженный: \n{directory.catalog}')
-    bot.send_message(msg.chat.id, f'Полный:      \n{catalog}')
+    try:
+        bot.send_message(msg.chat.id, f'Загруженный: \n{directory.catalog}')
+    except:
+        bot.send_message(msg.chat.id, f'Загруженный (слишком много элементов для вывода): \n{len(directory.catalog)}')
+    try:
+        bot.send_message(msg.chat.id, f'Полный:      \n{catalog}')
+    except:
+        bot.send_message(msg.chat.id, f'Полный (слишком много элементов для вывода): \n{len(catalog)}')
 
 def stop_handling(msg):
     global status, handling_process
