@@ -227,7 +227,7 @@ def send_request(_id : int, _directory : parsing.Directory):
 
         items = _directory.update()
         if _directory.parsing:
-            txt = f'За последнии 30 мин добавленно: {len(items)} новых организаций\n'
+            txt = f'За последнии 20 мин добавленно: {len(items)} новых организаций\n'
             for ind, item in zip(range(len(items)), items):
                 txt += f'{ind + 1}. {item}\n'
         else:
