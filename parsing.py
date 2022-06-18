@@ -165,7 +165,7 @@ class Directory:
 
         self.added = 0
 
-    def update(self, result = RESULT_LIM, passes = (0, 500, 1000)):
+    def update(self, result = RESULT_LIM, passes = (0, 500)):
         added = []
         for ind in range(len(self.catalog)):
             for skip in passes:
@@ -182,7 +182,7 @@ class Directory:
         
         return added
 
-    def set_items(self, category, result = RESULT_LIM, passes = (0, 500, 1000)) -> None:
+    def set_items(self, category, result = RESULT_LIM, passes = (0, 500)) -> None:
         self.catalog += category
         
         for skip in passes:

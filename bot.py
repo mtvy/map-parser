@@ -37,10 +37,7 @@ directory = parsing.Directory()
 
 """
 
-catalog = parsing.Catalog([
-    'автомойка Центральный административный округ',
-    'автомойка Северный административный округ'
-])
+catalog = parsing.Catalog(MAINCAT_CONST)
 
 status = f'{EMJ_RAISING_HAND} Начать'
 
@@ -215,7 +212,7 @@ def handle_updates(_id : int, _directory : parsing.Directory):
 
     schedule.every(
         UPDATE_DELAY
-    ).seconds.do(send_request, _id, _directory)
+    ).hour.do(send_request, _id, _directory)
 
     while True:
         schedule.run_pending()
