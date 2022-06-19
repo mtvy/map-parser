@@ -174,7 +174,7 @@ class Directory:
                 if ('features' in data.keys()):
                     self.parsing = True
 
-                    added = self.add_items(data['features'])
+                    added += self.add_items(data['features'])
 
                     self.properties.append(data['properties'])
                 
