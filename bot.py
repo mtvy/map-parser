@@ -239,8 +239,18 @@ def send_request(_id : int, _directory : parsing.Directory):
                 txt += f'{ind + 1}. {item}\n'
         else:
             txt = f'Парсинг не доступен! Количество запросов превысило 500 за день.'
-        bot.send_message(_id, txt)
-        bot.send_message(_id, directory)
+        try:
+            bot.send_message(_id, txt)
+            bot.send_message(_id, directory)
+        except:
+            debug.saveLogs(
+                f"[txt]-->\n{txt}", 
+                path.log_file
+            )
+            debug.saveLogs(
+                f"[directory]-->\n{directory}", 
+                path.log_file
+            )
     
     except:
         debug.saveLogs(

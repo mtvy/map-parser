@@ -12,7 +12,7 @@ from variables import *
 #\==================================================================/#
 SEARCH_URL = 'https://search-maps.yandex.ru/v1/'
 
-API_KEY = 'f49ce4e7-2f3f-46ba-b33e-da64cfbe94d7'
+API_KEY = '604bc3ff-6e7a-4400-bf1d-0b5a10ff24b8'
 
 RESULT_LIM = 500
 #\==================================================================/#
