@@ -3,7 +3,7 @@
 
 #
 
-UPDATE_DELAY = 2
+UPDATE_DELAY = 1
 
 BLNC_LIM = 30
 

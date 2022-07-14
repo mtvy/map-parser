@@ -160,33 +160,28 @@ def show_categories(msg):
 
     try:
         bot.send_message(msg.chat.id, 
-            f'Загруженный: \n{len(directory.catalog)}', 
+             'Количество загруженные категорий: '
+            f'{len(directory.catalog)} из {len(catalog)}.', 
             reply_markup=types.ReplyKeyboardRemove()
         )
-    except:
-        bot.send_message(msg.chat.id, 
-             'Загруженный (слишком много элементов для вывода): \n'
-            f'{len(directory.catalog)}', 
-            reply_markup=types.ReplyKeyboardRemove())
-    try:
+
         keyboard = set_keyboard([
             f'{EMJ_BACK_ARROW} Назад', 
             f'{EMJ_MAGNIFIER} Показать', 
             f'{EMJ_PLUS} Добавить', 
             f'{EMJ_BASKET} Удалить'
         ])
-        bot.send_message(msg.chat.id, f'Полный:\n{len(catalog)}')
+        
+        bot.send_message(msg.chat.id, f'Все категории: {len(catalog)}')
         for ind, item in zip(range(len(catalog)), catalog):
             bot.send_message(msg.chat.id, f'{ind + 1}. {item}\n')
+
         bot.send_message(msg.chat.id, 
             f'Вывод закончен!', reply_markup=keyboard
         )
     except:
-        bot.send_message(msg.chat.id, 
-             'Полный (слишком много элементов для вывода):'
-            f'\n{len(catalog)}', 
-            reply_markup=keyboard
-        )
+        #debug.saveLogs(f'[show_categories]-->{traceback.format_exc()}')
+        pass
 
 def stop_handling(msg):
     global status, handling_process
@@ -218,35 +213,16 @@ def _add_category(msg):
 
     try:
         catalog += msg.text
+        
         bot.send_message(msg.chat.id, 
-            f'{EMJ_DONE} Категория: "{msg.text}" добавлена в каталог!'
+            f'{EMJ_DONE} Категория: "{msg.text}" добавлена в каталог!\n'
         )
         if status == f'{EMJ_CROSS} Остановить':
-
-            kill_handling()
-
             bot.send_message(msg.chat.id, 
-                f'Получение данных по {msg.text}', 
-                reply_markup=types.ReplyKeyboardRemove()
+                'Перезапустите отслеживание организаций '
+                'для загрузки новой категории!'
             )
-            directory.set_items(msg.text)
-            if directory.parsing:
-                keyboard = set_keyboard([status, 
-                    f'{EMJ_NOTE} Категории', 
-                    f'{EMJ_DISK} Каталог'
-                ])
-                bot.send_message(msg.chat.id, 
-                    f'Запросы получены!', 
-                    reply_markup=keyboard
-                )
-                init_handling()
-            else:
-                status = f'{EMJ_RAISING_HAND} Начать'
-                bot.send_message(msg.chat.id, 
-                    f'Парсинг не доступен! '
-                     'Количество запросов превысило 500 за день.'
-                )
-                start(msg)
+        show_categories_keyboard(msg)
     except:
         debug.saveLogs(f"[_add_category]-->{traceback.format_exc()}")
         bot.send_message(msg.chat.id,
@@ -256,7 +232,8 @@ def _add_category(msg):
 def add_category(msg):
     try:
         waiter = bot.send_message(msg.chat.id, 
-            'Введите категорию для добавления в каталог поиска:'
+            'Введите категорию для добавления в каталог поиска:',
+            reply_markup=types.ReplyKeyboardRemove()
         )
         bot.register_next_step_handler(waiter, _add_category)
     except:
@@ -273,21 +250,17 @@ def _del_category(msg):
             del catalog[msg.text]
             bot.send_message(msg.chat.id, 
                 f'{EMJ_BASKET} Категория: "{msg.text}" удалена из каталога!')
-
+            
+            if status == f'{EMJ_CROSS} Остановить':
+                bot.send_message(msg.chat.id, 
+                    'Перезапустите отслеживание организаций '
+                    'для загрузки новой категории!'
+                )
         else: 
             bot.send_message(msg.chat.id,
                 f'{EMJ_CROSS} Категория: "{msg.text}" нет в каталоге!'
             )
-
-        if msg.text in directory.catalog:
-            del directory.catalog[msg.text]
-
-            if status == f'{EMJ_CROSS} Остановить': 
-                kill_handling()
-
-                directory.clear()
-
-                config_directory(msg)
+        show_categories_keyboard(msg)
     except:
         debug.saveLogs(f"[_del_category]-->{traceback.format_exc()}")
         bot.send_message(msg.chat.id, 'Проблемы с удалением категории!')
@@ -295,7 +268,8 @@ def _del_category(msg):
 def del_category(msg):
     try:
         waiter = bot.send_message(msg.chat.id, 
-            'Введите категорию для удаления из каталога поиска:'
+            'Введите категорию для удаления из каталога поиска:',
+            reply_markup=types.ReplyKeyboardRemove()
         )
         bot.register_next_step_handler(waiter, _del_category)
     except:
@@ -315,8 +289,13 @@ KEYBOARD_FUNC = {
 
 @bot.message_handler(content_types=['text'])
 def input_keyboard(msg):
+    global u_ids
     try:
-        if msg.text in KEYBOARD_FUNC: KEYBOARD_FUNC[msg.text](msg)
+        if msg.text in KEYBOARD_FUNC: 
+            if msg.chat.id in u_ids:
+                KEYBOARD_FUNC[msg.text](msg)
+            else:
+                bot.send_message(msg.chat.id, f'{EMJ_NOTE}Остановите и перезапустите бота!')
     except:
         debug.saveLogs(f"[input_keyboard]-->{traceback.format_exc()}")
 #\==================================================================/#

@@ -17,10 +17,10 @@ SEARCH_URL = 'https://search-maps.yandex.ru/v1/'
 API_KEY = 'f49ce4e7-2f3f-46ba-b33e-da64cfbe94d7'
 
 API_KEY_SET = [
-    API_KEY, 
-    '604bc3ff-6e7a-4400-bf1d-0b5a10ff24b8',
+    '0871411f-8076-46ab-aed4-9e24468043a5',
     '2f2074fd-a5ba-4b61-a397-d28eaf4f706b',
-    '0871411f-8076-46ab-aed4-9e24468043a5'
+    '604bc3ff-6e7a-4400-bf1d-0b5a10ff24b8',
+    API_KEY
 ]
 
 RESULT_LIM = 500
