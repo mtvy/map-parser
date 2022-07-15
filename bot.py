@@ -305,7 +305,10 @@ def input_keyboard(msg):
 """
 Updating directory
 """
+TWO_HOURS = 7200
+
 handling_status = True
+
 def handle_updates(_u_ids : Set[int], _directory : Directory) -> None:
     global handling_status
 
@@ -345,7 +348,7 @@ def handle_updates(_u_ids : Set[int], _directory : Directory) -> None:
             time.sleep(1)
             if not handling_status:
                 handling_status = True
-                break
+                time.sleep(TWO_HOURS)
     except:
         debug.saveLogs(f"[run_pending]-->{traceback.format_exc()}")
         return
