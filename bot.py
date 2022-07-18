@@ -348,7 +348,7 @@ def handle_updates(_u_ids : Set[int], _directory : Directory) -> None:
             time.sleep(1)
             if not handling_status:
                 handling_status = True
-                time.sleep(TWO_HOURS)
+                break
     except:
         debug.saveLogs(f"[run_pending]-->{traceback.format_exc()}")
         return
